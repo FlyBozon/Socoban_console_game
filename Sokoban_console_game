@@ -1,0 +1,731 @@
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+const int GamesCount = 7;
+const int BoxCount = 100;
+const int ArrSizeX = 30;
+const int ArrSizeY = 30;
+const char msCursor = '@';
+const char msCursorOk = '&';
+const char msWall = '#';
+const char msBox = 'x';
+const char msBoxOk = 'X';
+const char msOk = '*';
+const char msEmpty = ' ';
+
+const int CellSizeX = 3;
+const int CellSizeY = 2;
+const char masCursor[CellSizeY][CellSizeX + 1] = {
+"_O_",
+" H "
+};
+const char masCursorOk[CellSizeY][CellSizeX + 1] = {
+"\\O/",
+" H "
+};
+const char masWall[CellSizeY][CellSizeX + 1] = {
+"###",
+"###"
+};
+const char masBox[CellSizeY][CellSizeX + 1] = {
+"XXX",
+"XXX"
+};
+const char masBoxOk[CellSizeY][CellSizeX + 1] = {
+"***",
+"***"
+};
+const char masOk[CellSizeY][CellSizeX + 1] = {
+" . ",
+"   "
+};
+const char masEmpty[CellSizeY][CellSizeX + 1] = {
+"   ",
+"   "
+};
+
+const char DefaultMap1[ArrSizeY][ArrSizeX] = {
+	"#####",
+	"#@  #",
+	"# x #",
+	"### #",
+	"#*x #",
+	"#  *#",
+	"#####"
+};
+const int DefaultStepCount1 = 8;
+
+const char DefaultMap2[ArrSizeY][ArrSizeX] = {
+"########",
+"#      #",
+"# *x*  #",
+"# x*x  #",
+"# *x*  #",
+"# x*x  #",
+"#  @   #",
+"########"
+};
+const int DefaultStepCount2 = 70;
+
+const char DefaultMap3[ArrSizeY][ArrSizeX] = {
+	"             #########     ",
+	"################   ########",
+	"#@ x                      #",
+	"################ ##########",
+	"               # #         ",
+	"               # #         ",
+	"               # #         ",
+	"               # #         ",
+	"               # #         ",
+	"               # #         ",
+	"               #*#         ",
+	"               ###         "
+};
+const int DefaultStepCount3 = 32;
+const char DefaultMap4[ArrSizeY][ArrSizeX] = {
+	"  ###   ",
+	"  #*#   ",
+	"  # ####",
+	"###x x*#",
+	"#* x ###",
+	"####@#  ",
+	"   #X#  ",
+	"   ###  "
+};
+const int DefaultStepCount4 = 9;
+
+const char DefaultMap5[ArrSizeY][ArrSizeX] = {
+		"########",
+		"###   ##",
+		"#*@x  ##",
+		"### x*##",
+		"#*##x ##",
+		"# # * ##",
+		"#x Xxx*#",
+		"#   *  #",
+		"########"
+};
+const int DefaultStepCount5 = 60;
+
+const char DefaultMap6[ArrSizeY][ArrSizeX] = {
+	"  ####  ",
+	"###  #  ",
+	"#    #  ",
+	"#   *###",
+	"### #@*#",
+	"  # xx #",
+	"  #  x #",
+	"  #* ###",
+	"  ####  "
+};
+const int DefaultStepCount6 = 120;
+
+const char DefaultMap7[ArrSizeY][ArrSizeX] = {
+	"         #####         ",
+	"        ##   ##        ",
+	"       ##*x*x*##       ",
+	"       ##x*x*x##       ",
+	"       # *x*x* #       ",
+	"       # x*x*x #       ",
+	"       # *x*x* #       ",
+	"  ###### x*x*x ######  ",
+	" ###     *x*x*     ### ",
+	"##*x*x*x*x*x*x*x*x*x*##",
+	"# x*x*x*x*x x*x*x*x*x #",
+	"# *x*x*x*x @ x*x*x*x* #",
+	"# x*x*x*x*x x*x*x*x*x #",
+	"##*x*x*x*x*x*x*x*x*x*##",
+	" ###     *x*x*     ### ",
+	"  ###### x*x*x ######  ",
+	"       # *x*x* #       ",
+	"       # x*x*x #       ",
+	"       # *x*x* #       ",
+	"       ##x*x*x##       ",
+	"       ##*x*x*##       ",
+	"        ##   ##        ",
+	"         #####         "
+};
+const int DefaultStepCount7 = 10000;
+
+typedef struct {
+	int x;
+	int y;
+} TCoord;
+
+char Mapka[ArrSizeY][ArrSizeX];
+
+TCoord Boxes[BoxCount];
+TCoord Cursor;
+int LeftStepCount;
+
+int dScrolX;
+int dScrolY;
+int MapSizeX;
+int MapSizeY;
+const int WinSizeX = 25;
+const int WinSizeY = 8;
+
+bool FindBox(int x, int y, int& BoxIndex) {
+	BoxIndex = -1;
+	for (int i = 0; i < BoxCount; i++) {
+		if (Boxes[i].x == x and Boxes[i].y == y) {
+			BoxIndex = i;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ExistBox(int x, int y) {
+	int BoxIndex = -1;
+	return FindBox(x, y, BoxIndex);
+}
+
+void FirstGame() {
+	cout << setw(11) << "#" << setw(10) << "#" << setw(15) << "#" << endl;
+	cout << setw(3) << "##" << setw(11) << "#  #" << setw(7) << "#" << setw(15) << "#    #" << endl;
+	cout << setw(4) << "#  #" << setw(10) << "#  #" << setw(7) << "#" << setw(15) << "oo  ##   #" << endl;
+	cout << setw(36) << "#     oo  x #       #    *  o x #  #" << endl;
+	cout << setw(36) << " #   o  * ##    oo  ###  o  o #  # #" << endl;
+	cout << setw(36) << "  X  O  o # X  o  O #  # ooOo #   #X" << endl;
+	cout << setw(36) << "   # o  O x  # *  o X  # O  O #     " << endl;
+	cout << setw(36) << "#  #  oo  #  X  oO  ###       #     " << endl;
+	cout << setw(36) << " ##       #  #                      " << endl;
+}
+
+void Congratulations() {
+	cout << setw(36) << "##   #         #       ###         #" << endl;
+	cout << setw(36) << " #   # o  CC  ###      #  #  *   * #" << endl;
+	cout << setw(36) << " #   #   C  C  #   oo  #  #   * *  #" << endl;
+	cout << setw(36) << " #   # o c     #  o  O ###     *   #" << endl;
+	cout << setw(36) << "  # #  O c     #  O  o #  #    *   #" << endl;
+	cout << setw(36) << "  # #  o C  C  #   oo  #   #   *    " << endl;
+	cout << setw(36) << "   #   O  CC   #       #   #       #" << endl;
+	cout << endl;
+}
+
+void loser() {
+	cout << setw(37) << "# #  oO         #   Oo   ##  ee     *" << endl;
+	cout << setw(37) << "# # O  o U U    #  o  o #   e e  * * " << endl;
+	cout << setw(37) << " ## o  o U u    #  O  o  #  ee     * " << endl;
+	cout << setw(37) << "  #  oo  U U    #   oo    # e    * * " << endl;
+	cout << setw(37) << " ##      uUu    ###     ##   ee     *" << endl;
+	cout << endl;
+	cout << "But you have one more opportunity to prove yourself! Good luck!" << endl;
+	cout << endl;
+}
+
+void menu() {
+	cout << " ---------------------------------------------------------------" << endl;
+	cout << "|  " << "MENU" << setw(58) << "  |" << endl;
+	cout << " ---------------------------------------------------------------" << endl;
+	cout << "|  " << setw(25) << "WSAD - sterowanie" << "   |" << setw(30) << "Q - wyjscie do menu glownego" << "  |" << endl;
+	cout << " ---------------------------------------------------------------" << endl;
+	cout << "|  " << setw(59) << "J, K, I, M - przesuwanie pola widocznosci planszy" << "  |" << endl;
+	cout << " ---------------------------------------------------------------" << endl;
+}
+
+bool SetupParam(const char DefaultMap[ArrSizeY][ArrSizeX], int DefaultStepCount) {
+	int iBox = 0;
+
+	dScrolX = 0;
+	dScrolY = 0;
+	MapSizeX = 0;
+	MapSizeY = 0;
+
+	LeftStepCount = DefaultStepCount;
+	Cursor.x = -1;
+	Cursor.y = -1;
+	for (int y = 0; y < ArrSizeY; y++) {
+		bool RowIsEmpty = true;
+		for (int x = 0; x < ArrSizeX; x++) {
+			char R = msEmpty;
+			char RMap;
+			RMap = DefaultMap[y][x];
+			if (RMap == msWall)
+				R = msWall;
+			else if (RMap == msOk)
+				R = msOk;
+			else if (RMap == msBox) {
+				Boxes[iBox].x = x;
+				Boxes[iBox].y = y;
+				iBox++;
+			}
+			else if (RMap == msBoxOk) {
+				Boxes[iBox].x = x;
+				Boxes[iBox].y = y;
+				iBox++;
+				R = msOk;
+			}
+			else if (RMap == msCursor) {
+				Cursor.x = x;
+				Cursor.y = y;
+			}
+			else if (RMap == msCursorOk) {
+				Cursor.x = x;
+				Cursor.y = y;
+				R = msOk;
+			}
+			Mapka[y][x] = R;
+			if (R != msEmpty) {
+				RowIsEmpty = false;
+				if (MapSizeX <= x)
+					MapSizeX = x + 1;
+			}
+		}
+		if (!RowIsEmpty) {
+			MapSizeY = y + 1;
+		}
+	}
+
+	for (int i = iBox; i < BoxCount; i++) {
+		Boxes[i].x = -1;
+		Boxes[i].y = -1;
+	}
+	return true;
+}
+
+bool Setup(int NumMap) {
+	switch (NumMap)
+	{
+	case 1:
+		SetupParam(DefaultMap1, DefaultStepCount1);
+		return true;
+		break;
+	case 2:
+		SetupParam(DefaultMap2, DefaultStepCount2);
+		return true;
+		break;
+	case 3:
+		SetupParam(DefaultMap3, DefaultStepCount3);
+		return true;
+		break;
+	case 4:
+		SetupParam(DefaultMap4, DefaultStepCount4);
+		return true;
+		break;
+	case 5:
+		SetupParam(DefaultMap5, DefaultStepCount5);
+		return true;
+		break;
+	case 6:
+		SetupParam(DefaultMap6, DefaultStepCount6);
+		return true;
+		break;
+	case 7:
+		SetupParam(DefaultMap7, DefaultStepCount7);
+		return true;
+		break;
+	}
+	return false;
+}
+
+bool CheckOk() {
+	for (int i = 0; i < BoxCount; i++) {
+		if (Boxes[i].x < 0)
+			continue;
+		if (Boxes[i].y < 0)
+			continue;
+
+		char R = Mapka[Boxes[i].y][Boxes[i].x];
+		if (R == msOk)
+			continue;
+
+		return false;
+	}
+	return true;
+}
+
+bool step(int dx, int dy, bool& ok, bool& notok)
+{
+	ok = false;
+	notok = false;
+	int newX = dx + Cursor.x;
+	int newY = dy + Cursor.y;
+	char RMap;
+
+	if (newX < 0 || newY < 0 || newX >= ArrSizeX || newY >= ArrSizeY)
+		return false;
+
+	RMap = Mapka[newY][newX];
+	if (RMap == msWall)
+		return false;
+
+	int iBox = -1;
+	if (FindBox(newX, newY, iBox)) {
+		int newBoxX = dx + newX;
+		int newBoxY = dy + newY;
+
+		if (newBoxX < 0 || newBoxY < 0 || newBoxX >= ArrSizeX || newBoxY >= ArrSizeY)
+			return false;
+
+		char RMapBox;
+		RMapBox = Mapka[newBoxY][newBoxX];
+		if (RMapBox == msWall)
+			return false;
+
+		if (ExistBox(newBoxX, newBoxY))
+			return false;
+
+		Cursor.x = newX;
+		Cursor.y = newY;
+		Boxes[iBox].x = newBoxX;
+		Boxes[iBox].y = newBoxY;
+		LeftStepCount--;
+		if (CheckOk())
+			ok = true;
+		else {
+			if (LeftStepCount <= 0)
+				notok = true;
+		}
+		return true;
+	}
+	else {
+		Cursor.x = newX;
+		Cursor.y = newY;
+		LeftStepCount--;
+		if (LeftStepCount <= 0)
+			notok = true;
+		return true;
+	}
+}
+
+void DrawCellPart(const char masCell[CellSizeY][CellSizeX + 1], int Row) {
+	for (int i = 0; i < CellSizeX; i++) {
+		cout << masCell[Row][i];
+	}
+}
+
+void Draw(int vtHello, int vtMenu) {
+	int x;
+
+	system("cls");
+
+	if (vtHello == 1)
+		Congratulations();
+	if (vtHello == 2) loser();
+
+	cout << "-";
+	if (dScrolX > 0)
+		cout << "-";
+	for (int wx = 0; wx < WinSizeX; wx++)
+		for (int Col = 0; Col < CellSizeX; Col++)
+			cout << "-";
+	if (WinSizeX + dScrolX < MapSizeX)
+		cout << "-";
+	cout << "-";
+	cout << endl;
+	if (dScrolY > 0) {
+		cout << "|";
+		if (dScrolX > 0)
+			cout << " ";
+		for (int wx = 0; wx < WinSizeX; wx++)
+			for (int Col = 0; Col < CellSizeX; Col++)
+				cout << "W";
+		if (WinSizeX + dScrolX < MapSizeX)
+			cout << " ";
+		cout << "|";
+		cout << endl;
+	}
+
+	for (int wy = 0; wy < WinSizeY; wy++) {
+		int y;
+		y = wy + dScrolY;
+
+		for (int Row = 0; Row < CellSizeY; Row++) {
+			cout << "|";
+			if (dScrolX > 0)
+				cout << ">";
+
+			if (y >= 0 and y < MapSizeY) {
+				for (int wx = 0; wx < WinSizeX; wx++) {
+					x = wx + dScrolX;
+
+					if (x >= 0 and x < MapSizeX) {
+						char R;
+						char RMap;
+						R = msEmpty;
+						RMap = Mapka[y][x];
+						if (Cursor.x == x && Cursor.y == y) {
+							if (RMap == msOk)
+								R = msCursorOk;
+							else
+								R = msCursor;
+						}
+						else if (ExistBox(x, y)) {
+							if (RMap == msOk)
+								R = msBoxOk;
+							else
+								R = msBox;
+						}
+						else
+							R = RMap;
+
+						switch (R) {
+						case ' ':
+							DrawCellPart(masEmpty, Row);
+							break;
+						case '#':
+							DrawCellPart(masWall, Row);
+							break;
+						case '*':
+							DrawCellPart(masOk, Row);
+							break;
+						case 'x':
+							DrawCellPart(masBox, Row);
+							break;
+						case 'X':
+							DrawCellPart(masBoxOk, Row);
+							break;
+						case '@':
+							DrawCellPart(masCursor, Row);
+							break;
+						case '&':
+							DrawCellPart(masCursorOk, Row);
+							break;
+						}
+					}
+					else {
+						for (int Col = 0; Col < CellSizeX; Col++)
+							cout << msEmpty;
+					}
+				}
+
+			}
+			else {
+				for (int wx = 0; wx < WinSizeX; wx++)
+					for (int Col = 0; Col < CellSizeX; Col++)
+						cout << msEmpty;
+			}
+			if (WinSizeX + dScrolX < MapSizeX)
+				cout << "<";
+			cout << "|";
+			cout << endl;
+		}
+	}
+
+	if (WinSizeY + dScrolY < MapSizeY) {
+		cout << "|";
+		if (dScrolX > 0)
+			cout << " ";
+		for (int wx = 0; wx < WinSizeX; wx++)
+			for (int Col = 0; Col < CellSizeX; Col++)
+				cout << "M";
+		if (WinSizeX + dScrolX < MapSizeX)
+			cout << " ";
+		cout << "|";
+		cout << endl;
+	}
+
+	cout << "-";
+	if (dScrolX > 0)
+		cout << "-";
+	for (int wx = 0; wx < WinSizeX; wx++)
+		for (int Col = 0; Col < CellSizeX; Col++)
+			cout << "-";
+	if (WinSizeX + dScrolX < MapSizeX)
+		cout << "-";
+	cout << "-";
+	cout << endl;
+
+	cout << "LEFT: " << LeftStepCount << endl;
+
+	if (vtMenu == 1)
+		menu();
+}
+
+
+bool Input(int& vt) {
+	bool res = true;
+	bool ok;
+	bool notok;
+	char input;
+	cin >> input;
+	switch (input) {
+	case 'A':
+	case 'a':
+		//dir = LEFT;
+		if (step(-1, 0, ok, notok)) {
+			if (ok) {
+				res = false;
+				vt = 1;
+			}
+			if (notok) {
+				res = false;
+				vt = 2;
+			}
+			Draw(0, 1);
+		}
+		break;
+	case 'W':
+	case 'w':
+		//dir = UP;
+		if (step(0, -1, ok, notok)) {
+			if (ok) {
+				res = false;
+				vt = 1;
+			}
+			if (notok) {
+				res = false;
+				vt = 2;
+			}
+			Draw(0, 1);
+		}
+		break;
+	case 'S':
+	case 's':
+		//dir = DOWN;
+		if (step(0, 1, ok, notok)) {
+			if (ok) {
+				res = false;
+				vt = 1;
+			}
+			if (notok) {
+				res = false;
+				vt = 2;
+			}
+			Draw(0, 1);
+		}
+		break;
+	case 'D':
+	case 'd':
+		//dir = RIGHT;
+		if (step(1, 0, ok, notok)) {
+			if (ok) {
+				res = false;
+				vt = 1;
+			}
+			if (notok) {
+				res = false;
+				vt = 2;
+			}
+			Draw(0, 1);
+		}
+		break;
+	case 'I':
+	case 'i':
+		dScrolY++;
+		Draw(0, 1);
+		break;
+	case 'K':
+	case 'k':
+		dScrolY--;
+		Draw(0, 1);
+		break;
+	case 'J':
+	case 'j':
+		dScrolX++;
+		Draw(0, 1);
+		break;
+	case 'L':
+	case 'l':
+		dScrolX--;
+		Draw(0, 1);
+		break;
+	case 'Q':
+	case 'q':
+		res = false;
+		vt = 3;
+		break;
+	}
+
+	return res;
+}
+
+
+int main() {
+	bool TheEnd = false;
+	string Warn = "";
+	char yn;
+	int numMapy;
+	int MaxMapy = 3;
+
+	do {
+		system("cls");
+		FirstGame();
+		cout << "Witam w grze!" << endl;
+		cout << "Project wykonany przez Mariia Krykun, ACiR1, 196742" << endl;
+		cout << "POWODZENIA!!!" << endl;
+		cout << endl;
+		//if (Warn != "")
+		//	cout << Warn << endl;
+		cout << "Dla rozpoczecia gry wybierz numer mapy: ";
+		for (int i = 1; i < MaxMapy; i++) {
+			cout << i;
+			if (i < MaxMapy - 1)
+				cout << ", ";
+		}
+		cout << " lub " << MaxMapy << endl;
+		cout << "Exit: 0" << endl;
+
+		cin.clear();
+		cin >> numMapy;
+
+		if (numMapy == 0) {
+			Warn = "";
+			cout << endl << "Do you really want to quit this game?[Y/N]" << endl;
+			cin.clear();
+			cin >> yn;
+			if (yn == 'Y' || yn == 'y')
+				TheEnd = true;
+		}
+
+		else if (Setup(numMapy)) {
+			if (numMapy > MaxMapy) {
+				Warn = "You're smart, but it doesn't work that way. Choose the level correctly! ;D";
+			}
+			else {
+				Warn = "";
+
+				bool ContinueGame = true;
+				Draw(0, 1);
+
+				do {
+					int vt = -1;
+					if (not Input(vt)) {
+						switch (vt)
+						{
+						case 1:
+							if (numMapy >= MaxMapy && numMapy < GamesCount)
+								MaxMapy = numMapy + 1;
+							Draw(1, 2);
+							cout << endl << "Next game? [Y/N]" << endl;
+							cin.clear();
+							cin >> yn;
+							ContinueGame = false;
+							if (yn == 'N' or yn == 'n')
+								TheEnd = true;
+							break;
+						case 2:
+							Draw(2, 2);
+							cout << endl << "Do you want to complete the level again? [Y/N]" << endl;
+							cin.clear();
+							cin >> yn;
+							ContinueGame = false;
+							if (yn == 'N' || yn == 'n')
+								TheEnd = true;
+							break;
+						case 3:
+							Draw(0, 0);
+							cout << endl << "You really want to go to the menu? [Y/N]" << endl;
+							cin.clear();
+							cin >> yn;
+							if (yn == 'Y' || yn == 'y') {
+								ContinueGame = false;
+							}
+							else
+								Draw(0, 1);
+							break;
+						}
+					}
+				} while (ContinueGame);
+			}
+		}
+		else {
+			Warn = "The map number is incorrect, try again .-.";
+		}
+	} while (!TheEnd);
+
+	return 0;
+}
